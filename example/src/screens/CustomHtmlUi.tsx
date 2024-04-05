@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
@@ -11,18 +10,12 @@ import {
 } from 'bitmovin-player-react-native';
 import { useTVGestures } from '../hooks';
 import Button from '../components/Button';
-import { RootStackParamsList } from '../App';
-
-type CustomHtmlUiProps = NativeStackScreenProps<
-  RootStackParamsList,
-  'CustomHtmlUi'
->;
 
 function prettyPrint(header: string, obj: any) {
   console.log(header, JSON.stringify(obj, null, 2));
 }
 
-export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
+export default function CustomHtmlUi() {
   useTVGestures();
 
   const customMessageHandler = useRef(
@@ -32,7 +25,16 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
         payload: string | undefined
       ) => {
         if (message === 'closePlayer') {
-          navigation.pop();
+          //navigation.pop();
+          Promise.all([
+            player.getVolume(),
+            player.getDuration(),
+            player.getCurrentTime(),
+          ])
+            .then(([, , currTime]) => {
+              player.seek(currTime + 10);
+            })
+            .catch(() => {});
         }
         prettyPrint('Received synchronous message', { message, payload });
         return undefined;
